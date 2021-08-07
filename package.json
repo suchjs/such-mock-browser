@@ -1,0 +1,34 @@
+{
+  "name": "such-mock-browser",
+  "version": "0.0.1",
+  "description": "Extend the ability 'Such.mock' for suchjs in browser.",
+  "main": "index.js",
+  "repository": "git@github.com:suchjs/such-mock-browser.git",
+  "author": "jxz_211 <jxz_211@163.com>",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "build:web": "BROWSER=true webpack --progress --mode=\"production\""
+  },
+  "peerDependencies": {
+    "suchjs": ">= 1.1.2"
+  },
+  "dependencies": {
+    "@mswjs/interceptors": "^0.12.5",
+    "node-match-path": "^0.6.3"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.29.0",
+    "@typescript-eslint/parser": "^4.29.0",
+    "eslint": "^7.32.0",
+    "eslint-plugin-prettier": "^3.4.0",
+    "filemanager-webpack-plugin": "^6.1.4",
+    "prettier": "^2.3.2",
+    "suchjs": "^1.1.2",
+    "terser-webpack-plugin": "^5.1.4",
+    "ts-loader": "^9.2.5",
+    "typescript": "^4.3.5",
+    "webpack": "^5.49.0",
+    "webpack-cli": "^4.7.2"
+  }
+}
