@@ -1,16 +1,22 @@
 {
   "name": "such-mock-browser",
   "version": "0.0.1",
-  "description": "Extend the ability 'Such.mock' for suchjs in browser.",
-  "main": "index.js",
-  "repository": "git@github.com:suchjs/such-mock-browser.git",
+  "description": "Extend suchjs with 'Such.mock' in browser.",
+  "main": "./lib/index.js",
+  "typings": "./lib/index.d.ts",
+  "repository": "https://github.com/suchjs/such-mock-browser",
   "author": "jxz_211 <jxz_211@163.com>",
   "license": "MIT",
   "private": false,
   "scripts": {
     "dev": "webpack --progress --watch",
-    "build": "BROWSER=true webpack --progress --mode=\"production\"",
-    "serve": "webpack serve"
+    "lint": "eslint 'src/**/*.{ts,js}'",
+    "clear": "rm -rf ./lib/*",
+    "build": "npm run clear && npm run lint && tsc",
+    "build:web": "BROWSER=true webpack --progress --mode=\"production\"",
+    "serve": "webpack serve",
+    "prepublish": "npm run build",
+    "postpublish": "npm run clear"
   },
   "peerDependencies": {
     "suchjs": ">= 1.1.2"
