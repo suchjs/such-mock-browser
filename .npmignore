@@ -1,0 +1,29 @@
+# dir
+/src
+/dist
+/__tests__
+/examples
+
+# node_modules
+node_modules/
+
+# system temp file
+.DS_Store
+
+# vscode config
+.vscode/
+
+# package
+yarn.lock
+yarn-error.log
+package-lock.json
+
+# tools
+.travis.yml
+.husky/
+
+# config files
+webpack.config.js
+jest.config.js
+.prettierrc.js
+.eslintrc.js

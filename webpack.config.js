@@ -7,6 +7,7 @@ const resolve = (pathname) => path.resolve(__dirname, pathname);
 const fileName = `such-mock-browser.${version}.min.js`;
 module.exports = {
   entry: './src/index.ts',
+  mode: 'development',
   module: {
     rules: [
       {
@@ -31,11 +32,6 @@ module.exports = {
       export: 'default',
     },
   },
-  resolve: {
-    alias: {
-      // suchjs: resolve('./node_modules/suchjs/lib/browser')
-    }
-  },
   externals: {
     'suchjs/lib/browser': {
       commonjs: 'Such',
@@ -43,6 +39,9 @@ module.exports = {
       amd: 'Such',
       root: 'Such',
     },
+  },
+  devServer: {
+    contentBase: resolve('examples'),
   },
   plugins: [
     new webpack.DefinePlugin({
@@ -56,8 +55,12 @@ module.exports = {
               source: resolve(`dist/${fileName}`),
               destination: resolve('dist/such-mock-browser.min.js'),
             },
+            {
+              source: resolve(`dist/${fileName}`),
+              destination: resolve('examples/such-mock-browser.min.js'),
+            },
           ],
-          delete: [resolve('lib')],
+          delete: [resolve('lib'), resolve('dist/*.LICENSE.txt')],
         },
       },
     }),

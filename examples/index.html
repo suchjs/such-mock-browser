@@ -4,9 +4,90 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+  <title>Mock example</title>
 </head>
 <body>
-  
+  <script src="https://cdn.jsdelivr.net/gh/suchjs/such@master/dist/such.min.js"></script>
+  <script src="./such-mock-browser.min.js"></script>
+  <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.js"></script>
+  <script>
+    $(function(){
+      const { method, target } = Such.mock;
+      Such.mock('/a', 'GET', {
+        a: ':string'
+      });
+      Such.mock('/b', method.GET | method.POST, {
+        b: ':number'
+      });
+      Such.mock('/c', '*', {
+        c: ':increment:{3}'
+      });
+      Such.mock('/d', function(req){
+        return req.method === 'POST';
+      }, {
+        d: ':::haha'
+      });
+      Such.mock(/\/\w+/, method.ANY, function(req){
+        return {
+          '*': '*'
+        };
+      });
+      Such.mock('/e/:id', 'GET,POST', function(req, params){
+        return {
+          id: params.id,
+          words: Such.as(':string')
+        };
+      });
+      Such.mock('/f', 'GET', function(req, params){
+        return Such.as({ plain: ':::haha,`:string`'});
+      }, {
+        headers: {
+          'Content-Type': 'text/html'
+        }
+      });
+      Such.mock('/g', 'GET', function(req){
+        console.log('触发req');
+        return Such.as({
+          'fetch:{1,3}': ':string'
+        });
+      });
+      // intercept 
+      Such.mock.intercept(target.XHR | target.FETCH);
+      // xhr
+      $.get('/a', function(res){
+        console.log(res);
+      });
+      $.post('/a', function(res){
+        console.log(res);
+      });
+      $.get('/b', function(res){
+        console.log(res);
+      });
+      $.post('/b', function(res){
+        console.log(res);
+      });
+      $.post('/c', function(res){
+        console.log(res);
+      });
+      $.post('/d', function(res){
+        console.log(res);
+      });
+      $.post('/e/123', function(res){
+        console.log(res);
+      });
+      $.get('/f',  function(res){
+        console.log(res);
+      });
+      window.fetch('/g', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+          // 'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      }).then((res) => res.json()).then((data) => {
+        console.log(data);
+      });
+    });
+  </script>
 </body>
 </html>

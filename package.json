@@ -8,7 +8,9 @@
   "license": "MIT",
   "private": false,
   "scripts": {
-    "build:web": "BROWSER=true webpack --progress --mode=\"production\""
+    "dev": "webpack --progress --watch",
+    "build": "BROWSER=true webpack --progress --mode=\"production\"",
+    "serve": "webpack serve"
   },
   "peerDependencies": {
     "suchjs": ">= 1.1.2"
@@ -21,6 +23,7 @@
     "@typescript-eslint/eslint-plugin": "^4.29.0",
     "@typescript-eslint/parser": "^4.29.0",
     "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^3.4.0",
     "filemanager-webpack-plugin": "^6.1.4",
     "prettier": "^2.3.2",
@@ -29,6 +32,7 @@
     "ts-loader": "^9.2.5",
     "typescript": "^4.3.5",
     "webpack": "^5.49.0",
-    "webpack-cli": "^4.7.2"
+    "webpack-cli": "^4.7.2",
+    "webpack-dev-server": "^3.11.2"
   }
 }
