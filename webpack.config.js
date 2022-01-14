@@ -61,7 +61,7 @@ module.exports = {
             },
             {
               source: resolve(`dist/${fileName}`),
-              destination: resolve('examples/such-mock-browser.min.js'),
+              destination: resolve('examples/browser/such-mock-browser.min.js'),
             },
           ],
           delete: [resolve('lib'), resolve('dist/*.LICENSE.txt')],

@@ -1,0 +1,20 @@
+{
+  "name": "suchjs_mock_example",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "dev": "webpack --progress --watch --mode='development'",
+    "serve": "webpack serve"
+  },
+  "devDependencies": {
+    "webpack": "^5.66.0",
+    "webpack-cli": "^4.9.1",
+    "webpack-dev-server": "^4.7.3"
+  },
+  "dependencies": {
+    "jquery": "^3.6.0",
+    "such-mock-browser": "^0.0.3",
+    "suchjs": "^2.1.1"
+  }
+}
