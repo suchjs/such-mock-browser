@@ -1,6 +1,6 @@
 # such-mock-browser
 
-Extend the ability for `suchjs` with `Such.mock` in browser.
+Extend the ability for `suchjs` with `Such.mock` in browser, intercept the reqeust made by `XMLHttpRequest` or `fetch` API, response a mock data instead.
 
 ## How to use
 

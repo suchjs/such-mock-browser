@@ -8,9 +8,12 @@ import {
 import { interceptXMLHttpRequest } from '@mswjs/interceptors/lib/interceptors/XMLHttpRequest';
 import { interceptFetch } from '@mswjs/interceptors/lib/interceptors/fetch';
 import { match } from 'node-match-path';
+import { Such } from 'suchjs/lib/core/such';
 // !Use require to import the umd style library such
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const Such = require('suchjs/lib/browser');
+const windowSuch = require('suchjs/lib/browser');
+const globalSuchInstance = windowSuch.default as Such;
+const protoOfSuch = Object.getPrototypeOf(globalSuchInstance);
 /**
  * Interceptor Target
  * XHR -> XMLHttpRequest
@@ -21,7 +24,7 @@ enum InterceptorTarget {
   FETCH = 0b001 << 1,
 }
 /**
- *
+ * Request Methods
  */
 enum RequestMethod {
   GET = 0b1,
@@ -38,21 +41,39 @@ type TReqMatchFunc = (request: IsomorphicRequest, params?: TObj) => boolean;
 type TMockDataFunc = (request: IsomorphicRequest, params?: TObj) => unknown;
 type TReqMatchParam = string | TReqMatchFunc | RequestMethod;
 type TMockDataParam = TMockDataFunc | unknown;
-type MockedResult = Partial<MockedResponse> | ((resp: MockedResponse) => void);
+type ResponseTransformer = Partial<MockedResponse> | ((resp: MockedResponse) => void);
 type RouteItem<T extends string | RegExp = string | RegExp> = [
   T,
   TReqMatchFunc,
   TMockDataFunc,
-  MockedResult,
+  ResponseOptions,
 ];
-type SuchExtended = typeof Such & {
+export type SuchWithMock = typeof globalSuchInstance & {
   mock: (
     route: string | RegExp,
     match: TReqMatchParam,
     data: TMockDataParam,
-    resp?: MockedResult,
+    responseOptions?: ResponseOptions,
   ) => unknown;
 };
+/**
+ * ResponseTimeout
+ */
+interface ResponseTimeout{
+  timeout?: number | [number, number]
+}
+/**
+ * InterceptorOptions
+ */
+type InterceptorOptions = ResponseTimeout 
+
+/**
+ * ResponseOptions
+ */
+interface ResponseOptions extends  ResponseTimeout {
+  transformer?: ResponseTransformer
+}
+
 // Pick the value => key in ts enum.
 const reqMethodPairs: [number, string][] = (() => {
   const pairs: [number, string][] = [];
@@ -69,15 +90,70 @@ let interceptor: InterceptorApi;
 // routes
 let stringRoutes: RouteItem<string>[] = [];
 let regexRoutes: RouteItem<RegExp>[] = [];
+// interceptRequest
+const interceptRequest = (request: IsomorphicRequest, options: InterceptorOptions = {}) => {
+  const url = request.url;
+  const location = document.location;
+  // first, check the host if is equal
+  if (location.host !== url.host) {
+    return;
+  }
+  // then check the pathname
+  const loop = (...args: RouteItem[][]) => {
+    for (let i = 0, j = args.length; i < j; i++) {
+      const routes = args[i];
+      for (let l = 0, m = routes.length; l < m; l++) {
+        const [route, matchFn, dataFn, responseOptions] = routes[l];
+        const { matches, params } = match(route, url.pathname);
+        if (matches && matchFn(request, params)) {
+          const data = dataFn(request, params);
+          const response = {
+            status: 200,
+            statusText: 'Ok',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+          };
+          // if resp parameter is a function
+          // use the function to transform response
+          const { timeout, transformer } = responseOptions || {};
+          if (typeof transformer === 'function') {
+            transformer(response);
+          } else if (transformer) {
+            // if resp is a MockResponse
+            // extend to override the response
+            Object.assign(response, transformer);
+          }
+          return { response, timeout };
+        }
+      }
+    }
+  };
+  // first check the string routes, then the regex routes
+  const result = loop(stringRoutes, regexRoutes);
+  if(result){
+    const { timeout, response } = result;
+    const useTimeout = timeout || options.timeout;
+    if(useTimeout === undefined){
+      return response;
+    } else {
+      const delay = Array.isArray(useTimeout) ? globalSuchInstance.utils.makeRandom.apply(null, useTimeout) : useTimeout;
+      return new Promise((resolve) => {
+        setTimeout(() => resolve(response), delay);
+      });
+    }
+  }
+};
 /**
  * Such.mock
  */
-const ThisSuch: SuchExtended = Object.assign(Such, {
+const SuchPrototype: SuchWithMock = Object.assign(protoOfSuch, {
   mock(
     route: string | RegExp,
     match: TReqMatchParam,
     data: TMockDataParam,
-    resp?: MockedResult,
+    responseOptions?: ResponseOptions,
   ) {
     // handle the match function
     let matchFn: TReqMatchFunc;
@@ -109,28 +185,29 @@ const ThisSuch: SuchExtended = Object.assign(Such, {
       dataFn = data as TMockDataFunc;
     } else {
       dataFn = (_req: IsomorphicRequest) => {
-        return Such.as(data);
+        return globalSuchInstance.as(data);
       };
     }
     // route
     if (typeof route === 'string') {
-      stringRoutes.push([route, matchFn, dataFn, resp]);
+      stringRoutes.push([route, matchFn, dataFn, responseOptions]);
+    } else if (route instanceof RegExp) {
+      regexRoutes.push([route, matchFn, dataFn, responseOptions]);
     } else {
-      regexRoutes.push([route, matchFn, dataFn, resp]);
+      throw new Error(`wrong route pattern of type "${typeof route}", please use a string or a RegExp rule instead.`);
     }
   },
 });
-
 /**
  * Define properties inject into Such.mock
  */
-Object.assign(ThisSuch.mock, {
+Object.assign(SuchPrototype.mock, {
   // the target need be interceptor, XHR or FETCH or both
   target: InterceptorTarget,
   // method
   method: RequestMethod,
   // intercept
-  intercept(target: InterceptorTarget) {
+  intercept(target: InterceptorTarget, options: InterceptorOptions = {}): InterceptorApi | never {
     const modules: Interceptor[] = [];
     if ((target & InterceptorTarget.XHR) > 0) {
       modules.push(interceptXMLHttpRequest);
@@ -142,48 +219,11 @@ Object.assign(ThisSuch.mock, {
       interceptor = createInterceptor({
         modules,
         resolver: (request: IsomorphicRequest) => {
-          const url = request.url;
-          const location = document.location;
-          // first, check the host if is equal
-          if (location.host !== url.host) {
-            return;
-          }
-          // then check the pathname
-          const loop = (...args: RouteItem[][]) => {
-            for (let i = 0, j = args.length; i < j; i++) {
-              const routes = args[i];
-              for (let l = 0, m = routes.length; l < m; l++) {
-                const [route, matchFn, dataFn, resp] = routes[l];
-                const { matches, params } = match(route, url.pathname);
-                if (matches && matchFn(request, params)) {
-                  const data = dataFn(request, params);
-                  const result = {
-                    status: 200,
-                    statusText: 'Ok',
-                    headers: {
-                      'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data),
-                  };
-                  // if resp parameter is a function
-                  // use the function to transform result
-                  if (typeof resp === 'function') {
-                    resp(result);
-                  } else if (resp) {
-                    // if resp is a MockResponse
-                    // extend to override the result
-                    Object.assign(result, resp);
-                  }
-                  return result;
-                }
-              }
-            }
-          };
-          // first check the string routes, then the regex routes
-          return loop(stringRoutes, regexRoutes);
+          return interceptRequest(request, options);
         },
       });
       interceptor.apply();
+      return interceptor;
     } else {
       throw new Error(
         `Wrong interceptor target parameter when call the "Such.mock.intercept": expect at least one interceptor target.`,
@@ -198,4 +238,4 @@ Object.assign(ThisSuch.mock, {
     regexRoutes = [];
   },
 });
-export default ThisSuch;
+export default windowSuch;

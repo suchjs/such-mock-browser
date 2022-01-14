@@ -41,7 +41,11 @@ module.exports = {
     },
   },
   devServer: {
-    contentBase: resolve('examples'),
+    static: {
+      directory: resolve('examples'),
+    },
+    compress: true,
+    port: 9000
   },
   plugins: [
     new webpack.DefinePlugin({
