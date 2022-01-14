@@ -1,6 +1,6 @@
 {
   "name": "such-mock-browser",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Intercept the request made by 'XMLHttpRequest' and 'fetch' API in the browser, and response a mock data based on 'suchjs' library.",
   "main": "./lib/index.js",
   "typings": "./lib/index.d.ts",
@@ -19,7 +19,7 @@
     "postpublish": "npm run clear"
   },
   "peerDependencies": {
-    "suchjs": ">= 1.1.2"
+    "suchjs": ">= 2.1.1"
   },
   "dependencies": {
     "@mswjs/interceptors": "^0.13.1",

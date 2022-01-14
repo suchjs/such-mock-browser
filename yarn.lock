@@ -3454,9 +3454,9 @@ strip-json-comments@^3.1.0, strip-json-comments@^3.1.1:
   integrity sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==
 
 suchjs@^2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/suchjs/-/suchjs-2.1.0.tgz#16cbbd260f0eeb6a15c61aec953d7c7141d42fa6"
-  integrity sha512-NA11O01ud9YXhNf62omRy7sfYIjcI7PVFD7OlZvUKrisbZmEJcUHRNlScclLAIrhSA+kSha3r27Xz9PpTggYAQ==
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/suchjs/-/suchjs-2.1.1.tgz#26756c24d6315a4744554c2ae43f2d2dc814aef0"
+  integrity sha512-KEwUQqS5y4asrAbMCupMXWteRVFfyLkckbi/AYvsciBxL9rYZtWROxBjISO1Baa1+gdBf6TeN3TYHCenBQui1w==
   dependencies:
     nprintf "^1.0.1"
     reregexp "^1.5.0"
